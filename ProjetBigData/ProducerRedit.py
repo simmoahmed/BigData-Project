@@ -32,7 +32,7 @@ class RedditStreamListener:
             'title': submission.title,
             'score': submission.score,
             'url': submission.url,
-            'author': submission.author.name,
+            'author': submission.author,
             'created_utc': submission.created_utc,
         }
         producer.send(topic, value=reddit_post)
