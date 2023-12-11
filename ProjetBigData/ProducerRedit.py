@@ -12,7 +12,7 @@ password="Ayoubmalikisp1"
 
 # Set up your Kafka producer
 bootstrap_servers = 'localhost:9092'
-topic = 'reddit_topic_gaza'
+topic = 'Extract_Data_Topic'
 producer = KafkaProducer(bootstrap_servers=bootstrap_servers,
                          value_serializer=lambda v: json.dumps(v).encode('utf-8'))
                          
@@ -27,16 +27,19 @@ reddit = praw.Reddit(
 
 class RedditStreamListener:
     def on_submission(self, submission):
-        # This method is called whenever a new Reddit submission is received
-        reddit_post = {
-            'title': submission.title,
-            'score': submission.score,
-            'url': submission.url,
-            'author': submission.author,
-            'created_utc': submission.created_utc,
-        }
-        producer.send(topic, value=reddit_post)
-        print("Reddit post sent to Kafka")
+    # This method is called whenever a new Reddit submission is received
+        if submission.author is not None:
+            reddit_post = {
+                'text': submission.title,
+                'score': submission.score,
+                'url': submission.url,
+                'author': submission.author.name,
+                'created_utc': submission.created_utc,
+            }
+            producer.send(topic, value=reddit_post)
+            print("Reddit post sent to Kafka")
+        else:
+            print("Submission has no author. Skipping...")
 
     def on_error(self, status_code):
         print(f"Error with status code: {status_code}")

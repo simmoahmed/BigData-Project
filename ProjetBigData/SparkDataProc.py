@@ -25,7 +25,7 @@ spark = SparkSession.builder \
 
 # Kafka Configuration for Reading
 kafka_topic_read = "reddit_topic_gaza"
-kafka_bootstrap_servers = "localhost:9092" # or your Kafka server
+kafka_bootstrap_servers = "localhost:9092" 
 
 # Read data from Kafka
 df = spark.readStream \
@@ -34,15 +34,12 @@ df = spark.readStream \
     .option("subscribe", kafka_topic_read) \
     .load()
 
-# Assuming the value in Kafka topic is of String type and contains the text data
-df_string = df.selectExpr("CAST(value AS STRING)")
-
 # NLP transformations
 # 1. Lowercase and remove special characters
-df_cleaned = df_string.withColumn("text", lower(regexp_replace(col("value"), "[^a-zA-Z\\s]", "")))
+df_cleaned = df.withColumn("title", lower(regexp_replace(col("value"), "[^a-zA-Z\\s]", "")))
 
 # 2. Tokenization
-tokenizer = Tokenizer(inputCol="text", outputCol="words")
+tokenizer = Tokenizer(inputCol="title", outputCol="words")
 df_words = tokenizer.transform(df_cleaned)
 
 # 3. Stopwords Removal
@@ -68,3 +65,4 @@ query = df_json.writeStream \
     .start()
 
 query.awaitTermination()
+
